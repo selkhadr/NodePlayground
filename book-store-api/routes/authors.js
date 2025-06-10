@@ -1,7 +1,7 @@
 const express = require("express");
 const joi = require("joi");
 const router = express.Router();
-
+const {Author} = require("../models/Authors");
 const authors = [
     {
         "id": 1,
@@ -51,16 +51,25 @@ router.get("/:id", (req, res)=>{
  * @url /api/authors/
  * @access public
  */
-router.post("/", (req, res)=>{
+router.post("/", async(req, res)=>{
     const {error} = validateCreateAuthor(req.body);
     if (error)
         return res.send(error.details[0].message);
-    const author = {
-        name: req.body.name,
-        description: req.body.description
+
+    try{
+        const author = new Author({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            nationality: req.body.nationality,
+            image: req.body.image
+        });
+        const result = await author.save();
+        res.status(201).json(result);
     }
-    authors.push(author);
-    res.status(201).json({message: "author created successfuly"})
+    catch(error){
+        console.log(error);
+        res.status(500).json({message: "something went wrong"});
+    }
 })
 
 
@@ -108,8 +117,10 @@ router.delete("/:id", (req, res)=>{
 function validateCreateAuthor(obj)
 {
     const schema = joi.object({
-        name: joi.string().trim().min(3).max(200).required(),
-        description: joi.string().trim().min(3).max(200),
+        firstName: joi.string().trim().min(3).max(200).required(),
+        lastName: joi.string().trim().min(3).max(200).required(),
+        nationality: joi.string().trim().min(2).max(100).required(),
+        image: joi.string().trim().min(3).max(200),
     })
     return schema.validate(obj);
 }
