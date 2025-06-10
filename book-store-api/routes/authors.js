@@ -1,6 +1,6 @@
 const express = require("express");
 const joi = require("joi");
-const router = require.Router();
+const router = express.Router();
 
 const authors = [
     {
@@ -38,7 +38,7 @@ router.get("/", (req, res)=>{
  */
 router.get("/:id", (req, res)=>{
     const id  = req.params.id;
-    const author = authors.find(ath => ath === parseInt(id));
+    const author = authors.find(ath => ath.id === parseInt(id));
     if (author)
         res.status(200).json(author);
     else
@@ -54,13 +54,55 @@ router.get("/:id", (req, res)=>{
 router.post("/", (req, res)=>{
     const {error} = validateCreateAuthor(req.body);
     if (error)
-        return res.send("author info not enought");
+        return res.send(error.details[0].message);
     const author = {
         name: req.body.name,
         description: req.body.description
     }
     authors.push(author);
     res.status(201).json({message: "author created successfuly"})
+})
+
+
+/**
+ * @descp update an author
+ * @method Put
+ * @url /api/authors/:id
+ * @access public
+ */
+router.put("/:id", (req, res)=>{
+    const {error} = validateUpdateAuthor(req.body);
+    if (error)
+        return res.send(error.details[0].message);
+    const id = req.params.id;
+
+    const author = authors.find(auth => auth.id === parseInt(id));
+    if (author)
+    {
+
+        res.status(200).json({message: "author has been updated"})
+    }
+    else
+    res.status(404).json("author not found");
+})
+
+/**
+ * @descp delete an author
+ * @method Delete
+ * @url /api/authors/:id
+ * @access public
+ */
+router.delete("/:id", (req, res)=>{
+    const id = req.params.id;
+
+    const author = authors.find(auth => auth.id === parseInt(id));
+    if (author)
+    {
+
+        res.status(200).json({message: "author has been deleted"})
+    }
+    else
+    res.status(404).json("author not found");
 })
 
 function validateCreateAuthor(obj)
@@ -71,5 +113,15 @@ function validateCreateAuthor(obj)
     })
     return schema.validate(obj);
 }
+
+function validateUpdateAuthor(obj)
+{
+    const schema = joi.object({
+        name: joi.string().trim().min(3).max(200),
+        description: joi.string().trim().min(3).max(200),
+    })
+    return schema.validate(obj);
+}
+
 
 module.exports = router;

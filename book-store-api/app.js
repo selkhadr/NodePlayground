@@ -1,5 +1,6 @@
 const express = require("express");
 const booksPath = require("./routes/books");
+const authorsPath = require("./routes/authors");
 
 
 const app = express();
@@ -7,5 +8,6 @@ const app = express();
 app.use(express.json());
 
 app.use("/api/books", booksPath);
+app.use("/api/authors", authorsPath);
 
 app.listen(5000, ()=>console.log("server start"));
