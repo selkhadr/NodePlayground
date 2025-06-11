@@ -26,8 +26,15 @@ const authors = [
  * @url /api/authors/
  * @access public
  */
-router.get("/", (req, res)=>{
-    res.status(200).json(authors);
+router.get("/", async (req, res)=>{
+    try {
+        const authorList = await Author.find().sort({firstName: -1}).select("firstName lastName"); 
+        res.status(200).json(authorList);
+    }
+    catch(error)
+    {
+        res.send(error)
+    }
 })
 
 /**
@@ -36,13 +43,16 @@ router.get("/", (req, res)=>{
  * @url /api/authors/:id
  * @access public
  */
-router.get("/:id", (req, res)=>{
-    const id  = req.params.id;
-    const author = authors.find(ath => ath.id === parseInt(id));
-    if (author)
+router.get("/:id", async (req, res)=>{
+    try{
+        const id  = req.params.id;
+        const author = await Author.findById(id);
         res.status(200).json(author);
-    else
+    }
+    catch(error)
+    {
         res.send("author not found");
+    }
 })
 
 /**
@@ -55,7 +65,6 @@ router.post("/", async(req, res)=>{
     const {error} = validateCreateAuthor(req.body);
     if (error)
         return res.send(error.details[0].message);
-
     try{
         const author = new Author({
             firstName: req.body.firstName,
@@ -79,20 +88,26 @@ router.post("/", async(req, res)=>{
  * @url /api/authors/:id
  * @access public
  */
-router.put("/:id", (req, res)=>{
-    const {error} = validateUpdateAuthor(req.body);
-    if (error)
-        return res.send(error.details[0].message);
-    const id = req.params.id;
-
-    const author = authors.find(auth => auth.id === parseInt(id));
-    if (author)
-    {
-
-        res.status(200).json({message: "author has been updated"})
+router.put("/:id", async (req, res)=>{
+    try{
+        const {error} = validateUpdateAuthor(req.body);
+        if (error)
+            return res.send(error.details[0].message);
+        const id = req.params.id;
+    
+        const author = await Author.findByIdAndUpdate(id, {
+            $set: {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            nationality: req.body.nationality,
+            image: req.body.image,
+    }}, {new: true});
+        res.status(200).json({author})
     }
-    else
-    res.status(404).json("author not found");
+    catch(error)
+    {
+        res.status(404).json("author not found");
+    }
 })
 
 /**
@@ -101,17 +116,21 @@ router.put("/:id", (req, res)=>{
  * @url /api/authors/:id
  * @access public
  */
-router.delete("/:id", (req, res)=>{
-    const id = req.params.id;
-
-    const author = authors.find(auth => auth.id === parseInt(id));
-    if (author)
-    {
-
-        res.status(200).json({message: "author has been deleted"})
+router.delete("/:id", async (req, res)=>{
+    try{
+        const id = req.params.id;
+    
+        const author = Author.findByIdAndDelete(id);
+        if (author)
+        {
+    
+            res.status(200).json({message: "author has been deleted"})
+        } 
     }
-    else
-    res.status(404).json("author not found");
+    catch(error)
+    {
+        res.status(404).json("author not found");
+    }
 })
 
 function validateCreateAuthor(obj)
@@ -128,8 +147,10 @@ function validateCreateAuthor(obj)
 function validateUpdateAuthor(obj)
 {
     const schema = joi.object({
-        name: joi.string().trim().min(3).max(200),
-        description: joi.string().trim().min(3).max(200),
+        firstName: joi.string().trim().min(3).max(200),
+        lastName: joi.string().trim().min(3).max(200),
+        nationality: joi.string().trim().min(2).max(100),
+        image: joi.string().trim().min(3).max(200),
     })
     return schema.validate(obj);
 }
