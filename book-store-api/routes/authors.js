@@ -93,7 +93,6 @@ router.delete("/:id", asyncHandler(
             return res.status(404).json({message: "Author not found"});
         }   
         res.status(200).json({message: "author has been deleted"});
-
 }
 ))
 
