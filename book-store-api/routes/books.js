@@ -1,21 +1,11 @@
 const express = require("express");
+const asyncHandler = require("express-async-handler");
+
 
 const router = express.Router();
-const {book, validateCreateBook, validateCreateBook} = require("../models/books")
+const {Book, validateCreateBook, validateUpdateBook} = require("../models/books")
 
 
-const books = [
-    {
-        "id": 1,
-        "name": "talala",
-        "author": "sara"
-    },
-    {
-        "id": 2,
-        "name": "book",
-        "author": "author name"
-    }
-]
 
 
 /**
@@ -25,9 +15,10 @@ const books = [
  * @access puplic
  */
 
-router.get("/", (req, res) => {
-    res.json(books);
-})
+router.get("/", asyncHandler( async (req, res) => {
+    const books = await Book.find().populate("author", ["_id", "firstName", "lastName"]);
+    res.status(200).json(books);
+}))
 
 
 /**
@@ -36,17 +27,16 @@ router.get("/", (req, res) => {
  * @method Get
  * @access puplic
  */
-router.get("/:id", (req, res) => {
+router.get("/:id", asyncHandler(async (req, res) => {
     const id = req.params.id;
-    console.log(id);
-    const book = books.find(b => b.id === parseInt(id));
+    const book = await Book.findById(id).populate("author");
     if (book)
     {
         res.status(200).json(book);
         return ;
     }
-    res.send("no such book");
-})
+    res.status(404).json({message: "no such book"});
+}))
 
 
 /**
@@ -55,22 +45,23 @@ router.get("/:id", (req, res) => {
  * @method Post
  * @access puplic
  */
-router.post("/", (req, res) => {
+router.post("/", asyncHandler(async (req, res) => {
 
     const {error} = validateCreateBook(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
 
-    const book = {
-        id: books.length + 1,
-        name: req.body.name, 
-        author: req.body.author
-    };
-
-    books.push(book);
-    res.status(201).json(book);
-});
+    const book = new Book({
+        title: req.body.title, 
+        author: req.body.author,
+        description: req.body.description,
+        price: req.body.price,
+        cover: req.body.cover,
+    });
+    const result = await book.save();
+    res.status(201).json(result);
+}));
 
 /**
  * @desc update a book
@@ -78,23 +69,24 @@ router.post("/", (req, res) => {
  * @method Put
  * @access puplic
  */
-router.put("/:id", (req, res) => {
+router.put("/:id", asyncHandler(async (req, res) => {
     const {error} = validateUpdateBook(req.body);
     if (error) {
         return res.status(400).json({ message: error.details[0].message });
     }
     const id = req.params.id;
 
-    const book = books.find(bk => bk.id === parseInt(id));
-    if (book)
-    {
-
-        res.status(200).json({message: "book has been updated"})
+    const updatedBook = await Book.findByIdAndUpdate(id, {
+        $set: {
+        title: req.body.title, 
+        author: req.body.author,
+        description: req.body.description,
+        price: req.body.price,
+        cover: req.body.cover,
     }
-    else
-    res.status(404).json("book not found");
-
-})
+    }, {new: true})
+    res.status(200).json(updatedBook);
+}))
 
 
 /**
@@ -103,10 +95,10 @@ router.put("/:id", (req, res) => {
  * @method Delete
  * @access puplic
  */
-router.delete("/:id", (req, res) => {
+router.delete("/:id", asyncHandler(async(req, res) => {
     const id = req.params.id;
 
-    const book = books.find(bk => bk.id === parseInt(id));
+    const book = await Book.findByIdAndDelete(id);
     if (book)
     {
         res.status(200).json({message: "book has been deleted"})
@@ -114,7 +106,7 @@ router.delete("/:id", (req, res) => {
     else
     res.status(404).json("book not found");
 
-})
+}))
 
 
 

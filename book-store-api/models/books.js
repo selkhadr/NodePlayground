@@ -33,7 +33,7 @@ const BookSchema = new mongoose.Schema({
     }
 }, {timestamps: true});
 
-const book = mongoose.model(book, BookSchema);
+const Book = mongoose.model("Book", BookSchema);
 function validateCreateBook(obj)
 {
     const schema = Joi.object({
@@ -62,6 +62,6 @@ function validateUpdateBook(obj)
 
 }
 
-module.exports = {book, validateCreateBook,
+module.exports = {Book, validateCreateBook,
     validateUpdateBook
 };
