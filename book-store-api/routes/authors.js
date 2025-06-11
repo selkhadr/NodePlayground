@@ -1,7 +1,6 @@
 const express = require("express");
-const joi = require("joi");
 const router = express.Router();
-const {Author} = require("../models/Authors");
+const {Author, validateCreateAuthor, validateUpdateAuthor} = require("../models/Authors");
 const authors = [
     {
         "id": 1,
@@ -120,12 +119,12 @@ router.delete("/:id", async (req, res)=>{
     try{
         const id = req.params.id;
     
-        const author = Author.findByIdAndDelete(id);
-        if (author)
+        const author = await Author.findByIdAndDelete(id); 
+        if (!author)
         {
-    
-            res.status(200).json({message: "author has been deleted"})
-        } 
+            return res.status(404).json({message: "Author not found"});
+        }   
+        res.status(200).json({message: "author has been deleted"});
     }
     catch(error)
     {
@@ -133,27 +132,6 @@ router.delete("/:id", async (req, res)=>{
     }
 })
 
-function validateCreateAuthor(obj)
-{
-    const schema = joi.object({
-        firstName: joi.string().trim().min(3).max(200).required(),
-        lastName: joi.string().trim().min(3).max(200).required(),
-        nationality: joi.string().trim().min(2).max(100).required(),
-        image: joi.string().trim().min(3).max(200),
-    })
-    return schema.validate(obj);
-}
-
-function validateUpdateAuthor(obj)
-{
-    const schema = joi.object({
-        firstName: joi.string().trim().min(3).max(200),
-        lastName: joi.string().trim().min(3).max(200),
-        nationality: joi.string().trim().min(2).max(100),
-        image: joi.string().trim().min(3).max(200),
-    })
-    return schema.validate(obj);
-}
 
 
 module.exports = router;
