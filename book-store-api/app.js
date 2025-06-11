@@ -2,9 +2,10 @@ const express = require("express");
 const booksPath = require("./routes/books");
 const authorsPath = require("./routes/authors");
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+dotenv.config();
 
-
-mongoose.connect("mongodb://localhost/bookStoreDB")
+mongoose.connect(process.env.MONGO_URI)
 .then(()=>console.log("connected to mongodb "))
 .catch((error)=>console.log("connection failed to mongodb"));
 
@@ -15,4 +16,6 @@ app.use(express.json());
 app.use("/api/books", booksPath);
 app.use("/api/authors", authorsPath);
 
-app.listen(5000, ()=>console.log("server start"));
+const PORT= process.env.PORT||8000;
+console.log(PORT);
+app.listen(PORT, ()=>console.log(`server is running in  ${process.env.NODE_ENV} ON PORT ${PORT}`));
