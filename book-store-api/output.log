@@ -1,0 +1,17 @@
+
+> book-store-api@1.0.0 start
+> nodemon app
+
+[33m[nodemon] 3.1.10[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node app.js`[39m
+5000
+server is running in  development ON PORT 5000
+connected to mongodb 
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node app.js`[39m
+5000
+server is running in  development ON PORT 5000
+connected to mongodb 
