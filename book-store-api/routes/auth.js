@@ -31,4 +31,30 @@ router.post("/register", asyncHandler(async(req, res)=>{
     res.status(201).json({...other, token});
 }))
 
+/**
+ * @descp Login User
+ * @method Pots
+ * @url /api/auth/login
+ * @access public
+ */
+router.post("/login", asyncHandler(async(req, res)=>{
+    const {error} = validateLoginterUser(req.body);
+    if (error) 
+        return res.status(400).json({message: error.details[0].message});
+    
+    let user = await User.findOne({email: req.body.email});
+    if (!user)
+        return res.status(400).json({message: "invalid email or password"});
+    
+    const isPasswordMatch = await bcrypt.compare(req.body.password, user.password);
+    if(!isPasswordMatch)
+    {
+        return res.status(400).json({message: "invalid email or password"});
+    }
+    
+    const token = null;
+    const {password, ...other} = user._doc;
+    res.status(200).json({...other, token});
+}))
+
 module.exports = router
