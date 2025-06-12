@@ -17,4 +17,30 @@ function verifyToken(req, res, next)
         res.status(401).json({message: "no token provided"});
 }
 
-module.exports = {verifyToken,};
+function verifyTokenAndAuthorization(req, res, next)
+{
+    verifyToken(req, res, ()=>
+        {
+            if(req.user.id === req.params.id || req.user.isAdmin)
+            {
+                next();
+            }
+            else
+                return res.status(403).json({message: "you are not allowed"});
+    })
+}
+
+function verifyTokenAndAdmin(req, res, next)
+{
+    verifyToken(req, res, ()=>
+        {
+            if(req.user.isAdmin)
+            {
+                next();
+            }
+            else
+                return res.status(403).json({message: "you are not allowed, only admin allowed"});
+    })
+}
+
+module.exports = {verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin};
